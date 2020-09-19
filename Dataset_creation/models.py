@@ -1,4 +1,5 @@
 import random
+from typing import Union
 
 import pandas as pd
 from faker import Faker
@@ -83,107 +84,115 @@ class Customer:
             "User last successful login date/time": self.user_last_successful_login_date_time
         }
 
-    def get_payment_execution_date(self):
+    def get_payment_execution_date(self) -> str:
         """2016-11-01"""
-        pass
+        return "2016-11-01"
 
-    def get_payment_modification_date_and_time(self):
+    def get_payment_modification_date_and_time(self) -> str:
         """11/1/16 1:47 AM"""
-        pass
+        return "11/1/16 1:47 AM"
 
-    def get_payment_creation_date_and_time(self):
+    def get_payment_creation_date_and_time(self) -> str:
         """11/1/16 1:47 AM"""
-        pass
+        return "11/1/16 1:47 AM"
 
-    def get_payment_authorisation_date_and_time(self):
+    def get_payment_authorisation_date_and_time(self) -> str:
         """11/1/16 1:47 AM"""
-        pass
+        return "11/1/16 1:47 AM"
 
-    def get_payment_file_format_channel(self):
+    def get_payment_file_format_channel(self) -> str:
         """Connexis/SWIFT/Orion2"""
-        pass
+        channels = ["Connexis", "SWIFT", "Orion2"]
 
-    def get_ordering_bank_code(self):
+        return random.choice(channels)
+
+    def get_ordering_bank_code(self) -> str:
         """BNPASGSGXXX"""
-        pass
+        return "BNPASGSGXXX"
 
-    def get_ordering_account_number(self):
+    def get_ordering_account_number(self) -> str:
         """00200200223080USD"""
-        pass
+        return "00200200223080USD"
 
-    def get_client_entity_name(self):
+    def get_client_entity_name(self) -> str:
         """ABC LTD"""
-        pass
+        return "ABC LTD"
 
-    def get_beneficiary_account_number(self):
+    def get_beneficiary_account_number(self) -> str:
         """XXXXXXXXX, Length and format may vary depending on the beneficiary country/market"""
-        pass
+        return "XXXXXXXXX"
 
-    def get_beneficiary_name(self):
+    def get_beneficiary_name(self) -> str:
         """DEF LTD"""
-        pass
+        return "DEF LTD"
 
-    def get_beneficiary_address(self):
+    def get_beneficiary_address(self) -> str:
         """XXXXXXXXX, May or may not be present"""
-        pass
+        return "XXXXXXXXX"
 
-    def get_beneficiary_bank_code(self):
+    def get_beneficiary_bank_code(self) -> str:
         """HBUKGB4BXXX"""
-        pass
+        return "HBUKGB4BXXX"
 
-    def get_beneficiary_country(self):
+    def get_beneficiary_country(self) -> str:
         """UK, In ISO 2 letter country code format"""
-        pass
+        return "UK"
 
-    def get_instruction_payment_type(self):
+    def get_instruction_payment_type(self) -> str:
         """Normal Payment/ INTC Payment/ Payroll"""
-        pass
+        payment_types = ["Normal Payment", "INTC Payment", "Payroll"]
 
-    def get_payment_amount(self):
+        return random.choice(payment_types)
+
+    def get_payment_amount(self) -> Union[int, float]:
         """500000"""
         l_bound = self.behaviour.payment_amount_lower_bound
         u_bound = self.behaviour.payment_amount_upper_bound
-        pass
+        return 500000
 
-    def get_payment_currency(self):
+    def get_payment_currency(self) -> str:
         """USD"""
-        pass
+        return "USD"
 
-    def get_remittance_advice(self):
+    def get_remittance_advice(self) -> str:
         """lasjhdlasjldjasdjklasdj, Max 4x35 characters"""
-        pass
+        return "lasjhdlasjldjasdjklasdj"
 
-    def get_connexis_user_id_maker(self):
+    def get_connexis_user_id_maker(self) -> str:
         """ASDASDA"""
-        pass
+        return "ASDASDA"
 
-    def get_connexis_user_id_authoriser(self):
+    def get_connexis_user_id_authoriser(self) -> str:
         """ASDASDA"""
-        pass
+        return "ASDASDA"
 
-    def get_user_country_geo_location(self):
+    def get_user_country_geo_location(self) -> str:
         """SG"""
-        pass
+        return "SG"
 
-    def get_user_last_successful_login_date_time(self):
+    def get_user_last_successful_login_date_time(self) -> str:
         """11/1/16 1:47 AM"""
-        pass
+        return "11/1/16 1:47 AM"
 
-    def simulate_transactions(self, *, num_of_transactions: int, seeded: bool = True) -> pd.DataFrame:
+    def simulate_transactions(self, *, num_of_transactions: int) -> pd.DataFrame:
         """
         Gets a Simulated DataFrame of BNP dataset with 21 headers in total
 
         :param num_of_transactions: Specifies the number of rows to be included in the dataset
-        :param seeded: Default is to set the seed for the random generator
         :return: A DataFrame of (num_rows x 21) shape
         """
 
         for _ in range(num_of_transactions):
             # needs to be re-ordered accordingly
-            payment_execution_date = self.get_payment_execution_date()
-            payment_modification_date_and_time = self.get_payment_modification_date_and_time()
-            payment_creation_date_and_time = self.get_payment_creation_date_and_time()
+            user_country_geo_location = self.get_user_country_geo_location()
             payment_authorisation_date_and_time = self.get_payment_authorisation_date_and_time()
+            user_last_successful_login_date_time = self.get_user_last_successful_login_date_time()
+            payment_creation_date_and_time = self.get_payment_creation_date_and_time()
+            payment_modification_date_and_time = self.get_payment_modification_date_and_time()
+            payment_execution_date = self.get_payment_execution_date()
+            payment_currency = self.get_payment_currency()
+            payment_amount = self.get_payment_amount()
+
             payment_file_format_channel = self.get_payment_file_format_channel()
             ordering_bank_code = self.get_ordering_bank_code()
             ordering_account_number = self.get_ordering_account_number()
@@ -194,13 +203,9 @@ class Customer:
             beneficiary_bank_code = self.get_beneficiary_bank_code()
             beneficiary_country = self.get_beneficiary_country()
             instruction_payment_type = self.get_instruction_payment_type()
-            payment_amount = self.get_payment_amount()
-            payment_currency = self.get_payment_currency()
             remittance_advice = self.get_remittance_advice()
             connexis_user_id_maker = self.get_connexis_user_id_maker()
             connexis_user_id_authoriser = self.get_connexis_user_id_authoriser()
-            user_country_geo_location = self.get_user_country_geo_location()
-            user_last_successful_login_date_time = self.get_user_last_successful_login_date_time()
 
             self.payment_execution_date.append(payment_execution_date)
             self.payment_modification_date_and_time.append(payment_modification_date_and_time)
