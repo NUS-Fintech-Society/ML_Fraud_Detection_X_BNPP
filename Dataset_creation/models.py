@@ -182,6 +182,9 @@ class Customer:
         :return: A DataFrame of (num_rows x 21) shape
         """
 
+        connexis_user_id_maker = self.get_connexis_user_id_maker()
+        connexis_user_id_authoriser = self.get_connexis_user_id_authoriser()
+
         for _ in range(num_of_transactions):
             # needs to be re-ordered accordingly
             user_country_geo_location = self.get_user_country_geo_location()
@@ -204,8 +207,6 @@ class Customer:
             beneficiary_country = self.get_beneficiary_country()
             instruction_payment_type = self.get_instruction_payment_type()
             remittance_advice = self.get_remittance_advice()
-            connexis_user_id_maker = self.get_connexis_user_id_maker()
-            connexis_user_id_authoriser = self.get_connexis_user_id_authoriser()
 
             self.payment_execution_date.append(payment_execution_date)
             self.payment_modification_date_and_time.append(payment_modification_date_and_time)
