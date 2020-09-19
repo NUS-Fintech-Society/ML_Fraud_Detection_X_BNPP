@@ -17,9 +17,22 @@ class Behaviour:
 
     def __init__(self,
                  payment_amount_lower_bound: int = None,
-                 payment_amount_upper_bound: int = None):
-        self.payment_amount_lower_bound = payment_amount_lower_bound or 0
-        self.payment_amount_upper_bound = payment_amount_upper_bound or 50000
+                 payment_amount_upper_bound: int = None,
+                 id):
+        self.id = id
+
+        if self.id == 2:
+            self.payment_amount_lower_bound = 50000
+        else:
+            self.payment_amount_lower_bound = payment_amount_lower_bound or 0
+
+        if self.if == 1:
+            self.payment_amount_upper_bound = 1000
+        else:
+            self.payment_amount_upper_bound = payment_amount_upper_bound or 50000
+
+    def get_id(self):
+        return self.id
 
 
 class Customer:
@@ -81,6 +94,9 @@ class Customer:
             "User Country Geo-Location": self.user_country_geo_location,
             "User last successful login date/time": self.user_last_successful_login_date_time
         }
+
+    def get_behaviour_id(self):
+        return self.behaviour.get_id()
 
     def get_payment_execution_date(self, payment_authorisation_date_and_time: dt) -> dt:
         """
@@ -239,7 +255,7 @@ class Customer:
         payment_types = ["Normal Payment", "INTC Payment", "Payroll"]
 
         return random.choice(payment_types)
-
+ 
     def get_payment_amount(self) -> Union[int, float]:
         """
         Example (DataFrame): 500000
