@@ -27,17 +27,13 @@ class Customer:
     Customer object
     """
 
-    def __init__(self, behaviour: Behaviour, seeded=True):
+    def __init__(self, behaviour: Behaviour):
         """
         Initialises the Customer object.
 
         :param behaviour: Specifies a set of "rules" that each Customer should follow
         """
         self.faker = Faker()
-        if seeded:
-            self.faker.seed_instance(0)
-            random.seed(0)
-
         self.behaviour = behaviour
 
         self.payment_execution_date = []
@@ -102,7 +98,7 @@ class Customer:
         sec_delta = random.randint(1, 59)
         return payment_authorisation_date_and_time + dt.timedelta(days=day_delta, hours=hour_delta, minutes=min_delta, seconds=sec_delta)
 
-    def get_payment_modification_date_and_time(self, payment_creation_date_and_time: dt, payment_authorisation_date_and_time: dt) -> str:
+    def get_payment_modification_date_and_time(self, payment_creation_date_and_time: dt, payment_authorisation_date_and_time: dt) -> dt:
         """
         Example (DataFrame): 11/1/16 1:47 AM
 
@@ -114,7 +110,7 @@ class Customer:
         """
         modification_date = self.faker.date_time_between_dates(payment_creation_date_and_time, payment_authorisation_date_and_time)
 
-        return random.choices([modification_date, ""], weights=(70, 30))[0]
+        return pd.to_datetime(random.choices([modification_date, ""], weights=(70, 30))[0])
 
     def get_payment_creation_date_and_time(self, payment_authorisation_date_and_time: dt) -> dt:
         """
