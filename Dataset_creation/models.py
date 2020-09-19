@@ -1,6 +1,8 @@
+import datetime as dt
 import random
 from typing import Union
 
+import ccy
 import pandas as pd
 from faker import Faker
 
@@ -84,95 +86,231 @@ class Customer:
             "User last successful login date/time": self.user_last_successful_login_date_time
         }
 
-    def get_payment_execution_date(self) -> str:
-        """2016-11-01"""
-        return "2016-11-01"
+    def get_payment_execution_date(self, payment_authorisation_date_and_time: dt) -> dt:
+        """
+        Example (DataFrame): 2016-11-01
 
-    def get_payment_modification_date_and_time(self) -> str:
-        """11/1/16 1:47 AM"""
-        return "11/1/16 1:47 AM"
+        Random time with range 1-3 days after Payment Authorisation Date and Time.
 
-    def get_payment_creation_date_and_time(self) -> str:
-        """11/1/16 1:47 AM"""
-        return "11/1/16 1:47 AM"
+        :param payment_authorisation_date_and_time: Payment Authorisation Date and Time
+        :return: Datetime object
+        """
 
-    def get_payment_authorisation_date_and_time(self) -> str:
-        """11/1/16 1:47 AM"""
-        return "11/1/16 1:47 AM"
+        day_delta = random.randint(1, 3)
+        hour_delta = random.randint(1, 23)
+        min_delta = random.randint(1, 59)
+        sec_delta = random.randint(1, 59)
+        return payment_authorisation_date_and_time + dt.timedelta(days=day_delta, hours=hour_delta, minutes=min_delta, seconds=sec_delta)
+
+    def get_payment_modification_date_and_time(self, payment_creation_date_and_time: dt, payment_authorisation_date_and_time: dt) -> str:
+        """
+        Example (DataFrame): 11/1/16 1:47 AM
+
+        70 percent empty, 30 percent filled with a random date between payment creation date and time and payment authorisation date and time.
+
+        :param payment_creation_date_and_time: Payment Creation Date and Time
+        :param payment_authorisation_date_and_time: Payment Authorisation Date and Time
+        :return: Datetime object
+        """
+        modification_date = self.faker.date_time_between_dates(payment_creation_date_and_time, payment_authorisation_date_and_time)
+
+        return random.choices([modification_date, ""], weights=(70, 30))[0]
+
+    def get_payment_creation_date_and_time(self, payment_authorisation_date_and_time: dt) -> dt:
+        """
+        Example (DataFrame): 11/1/16 1:47 AM
+
+        Random date anytime from 30 days before Payment Authorisation Date and Time.
+
+        :param payment_authorisation_date_and_time: Payment Authorisation Date and Time
+        :return: Datetime object
+        """
+        day_delta = random.randint(1, 30)
+        hour_delta = random.randint(1, 23)
+        min_delta = random.randint(1, 59)
+        sec_delta = random.randint(1, 59)
+        return payment_authorisation_date_and_time - dt.timedelta(days=day_delta, hours=hour_delta, minutes=min_delta, seconds=sec_delta)
+
+    def get_payment_authorisation_date_and_time(self) -> dt:
+        """
+        Example (DataFrame): 11/1/16 1:47 AM
+
+        Within range of 5 years backdated from current date.
+        :return: Datetime object
+        """
+        return self.faker.date_time_between(start_date='-5y', end_date='now')
 
     def get_payment_file_format_channel(self) -> str:
-        """Connexis/SWIFT/Orion2"""
+        """
+        Types of File Format Channels are Connexis, SWIFT and Orion2.
+
+        :return: string
+        """
         channels = ["Connexis", "SWIFT", "Orion2"]
 
         return random.choice(channels)
 
     def get_ordering_bank_code(self) -> str:
-        """BNPASGSGXXX"""
-        return "BNPASGSGXXX"
+        """
+        Example (DataFrame): BNPASGSGXXX
+
+        SWIFT 11 code (need to think of how to generate wrt location).
+
+        :return: string
+        """
+        return self.faker.swift11(primary=True)
 
     def get_ordering_account_number(self) -> str:
-        """00200200223080USD"""
+        """
+        Example (DataFrame): 00200200223080USD
+
+        Need to think of how to generate this.
+
+        :return: string
+        """
         return "00200200223080USD"
 
     def get_client_entity_name(self) -> str:
-        """ABC LTD"""
-        return "ABC LTD"
+        """
+        Example (DataFrame): ABC LTD
 
-    def get_beneficiary_account_number(self) -> str:
-        """XXXXXXXXX, Length and format may vary depending on the beneficiary country/market"""
+        Need to think of how to generate wrt location.
+
+        :return: string
+        """
+        return self.faker.company()
+
+    def get_beneficiary_account_number(self, beneficiary_country: str) -> str:
+        """
+        Example (DataFrame): XXXXXXXXX
+
+        Length and format may vary depending on the beneficiary country/market
+
+        :param beneficiary_country: Beneficiary Country
+        :return: string
+        """
         return "XXXXXXXXX"
 
-    def get_beneficiary_name(self) -> str:
-        """DEF LTD"""
-        return "DEF LTD"
+    def get_beneficiary_name(self, beneficiary_country: str) -> str:
+        """
+        Example (DataFrame): ABC LTD
 
-    def get_beneficiary_address(self) -> str:
-        """XXXXXXXXX, May or may not be present"""
+        Need to think of how to generate wrt location.
+
+        :param beneficiary_country: Beneficiary Country
+        :return: string
+        """
+        return self.faker.company()
+
+    def get_beneficiary_address(self, beneficiary_country: str) -> str:
+        """
+        Example (DataFrame): XXXXXXXXX
+
+        Need to think of how to generate wrt location.
+
+        :param beneficiary_country: Beneficiary Country
+        :return: string
+        """
         return "XXXXXXXXX"
 
-    def get_beneficiary_bank_code(self) -> str:
-        """HBUKGB4BXXX"""
-        return "HBUKGB4BXXX"
+    def get_beneficiary_bank_code(self, user_country_geo_location: str) -> str:
+        """
+        Example (DataFrame): HBUKGB4BXXX
 
-    def get_beneficiary_country(self) -> str:
-        """UK, In ISO 2 letter country code format"""
-        return "UK"
+        Need to think of how to generate wrt location.
+
+        :param user_country_geo_location: User Country Geo Location
+        :return: string
+        """
+        return self.faker.swift11(primary=True)
+
+    def get_beneficiary_country(self, beneficiary_bank_code: str) -> str:
+        """
+        Example (DataFrame): UK
+
+        In ISO 2 letter country code format. Uses beneficiary bank code to derive the beneficiary code
+
+        :param beneficiary_bank_code: Beneficiary Bank Code
+        :return: string
+        """
+        return beneficiary_bank_code[4:6]
 
     def get_instruction_payment_type(self) -> str:
-        """Normal Payment/ INTC Payment/ Payroll"""
+        """
+        Types of Instruction Payment: Normal Payment, INTC Payment and Payroll
+        :return: string
+        """
         payment_types = ["Normal Payment", "INTC Payment", "Payroll"]
 
         return random.choice(payment_types)
 
     def get_payment_amount(self) -> Union[int, float]:
-        """500000"""
+        """
+        Example (DataFrame): 500000
+
+        Need to check for the range and whether integer or float
+
+        :return: int or float
+        """
         l_bound = self.behaviour.payment_amount_lower_bound
         u_bound = self.behaviour.payment_amount_upper_bound
-        return 500000
+        return round(random.uniform(l_bound, u_bound), 2)
 
-    def get_payment_currency(self) -> str:
-        """USD"""
-        return "USD"
+    def get_payment_currency(self, user_country_geo_location: str) -> str:
+        """
+        Example (DataFrame): USD
+
+        Derives the currency from the user_country_geo_location
+
+        :param user_country_geo_location: User Country Geo Location
+        :return: string
+        """
+        return ccy.countryccy(user_country_geo_location)
 
     def get_remittance_advice(self) -> str:
-        """lasjhdlasjldjasdjklasdj, Max 4x35 characters"""
-        return "lasjhdlasjldjasdjklasdj"
+        """
+        Example (DataFrame): lasjhdlasjldjasdjklasdj
+
+        Max 4x35 characters.
+
+        :return: string
+        """
+        return self.faker.text(max_nb_chars=4 * 35)
 
     def get_connexis_user_id_maker(self) -> str:
-        """ASDASDA"""
-        return "ASDASDA"
+        """
+        Example (DataFrame): ASDASDA
+        :return: string
+        """
+        return self.faker.user_name().upper()
 
     def get_connexis_user_id_authoriser(self) -> str:
-        """ASDASDA"""
-        return "ASDASDA"
+        """
+        Example (DataFrame): ASDASDA
+        :return: string
+        """
+        return self.faker.user_name().upper()
 
     def get_user_country_geo_location(self) -> str:
-        """SG"""
+        """
+        Example (DataFrame): SG
+
+        :return: string
+        """
         return "SG"
 
-    def get_user_last_successful_login_date_time(self) -> str:
-        """11/1/16 1:47 AM"""
-        return "11/1/16 1:47 AM"
+    def get_user_last_successful_login_date_time(self, payment_authorisation_date_and_time: dt) -> str:
+        """
+        Example (DataFrame): 11/1/16 1:47 AM
+        :param payment_authorisation_date_and_time: Payment Authorisation Date and Time
+        :return: Datetime object
+        """
+        day_delta = random.randint(1, 15)
+        hour_delta = random.randint(1, 23)
+        min_delta = random.randint(1, 59)
+        sec_delta = random.randint(1, 59)
+
+        return payment_authorisation_date_and_time - dt.timedelta(days=day_delta, hours=hour_delta, minutes=min_delta, seconds=sec_delta)
 
     def simulate_transactions(self, *, num_of_transactions: int) -> pd.DataFrame:
         """
@@ -189,24 +327,27 @@ class Customer:
             # needs to be re-ordered accordingly
             user_country_geo_location = self.get_user_country_geo_location()
             payment_authorisation_date_and_time = self.get_payment_authorisation_date_and_time()
-            user_last_successful_login_date_time = self.get_user_last_successful_login_date_time()
-            payment_creation_date_and_time = self.get_payment_creation_date_and_time()
-            payment_modification_date_and_time = self.get_payment_modification_date_and_time()
-            payment_execution_date = self.get_payment_execution_date()
-            payment_currency = self.get_payment_currency()
+            user_last_successful_login_date_time = self.get_user_last_successful_login_date_time(payment_authorisation_date_and_time)
+            payment_creation_date_and_time = self.get_payment_creation_date_and_time(payment_authorisation_date_and_time)
+            payment_modification_date_and_time = self.get_payment_modification_date_and_time(payment_creation_date_and_time,
+                                                                                             payment_authorisation_date_and_time)
+            payment_execution_date = self.get_payment_execution_date(payment_authorisation_date_and_time)
+            payment_currency = self.get_payment_currency(user_country_geo_location)
             payment_amount = self.get_payment_amount()
 
             payment_file_format_channel = self.get_payment_file_format_channel()
             ordering_bank_code = self.get_ordering_bank_code()
             ordering_account_number = self.get_ordering_account_number()
-            client_entity_name = self.get_client_entity_name()
-            beneficiary_account_number = self.get_beneficiary_account_number()
-            beneficiary_name = self.get_beneficiary_name()
-            beneficiary_address = self.get_beneficiary_address()
-            beneficiary_bank_code = self.get_beneficiary_bank_code()
-            beneficiary_country = self.get_beneficiary_country()
-            instruction_payment_type = self.get_instruction_payment_type()
             remittance_advice = self.get_remittance_advice()
+
+            client_entity_name = self.get_client_entity_name()
+            beneficiary_bank_code = self.get_beneficiary_bank_code(user_country_geo_location)
+            beneficiary_country = self.get_beneficiary_country(beneficiary_bank_code)
+            beneficiary_account_number = self.get_beneficiary_account_number(beneficiary_country)
+            beneficiary_name = self.get_beneficiary_name(beneficiary_country)
+            beneficiary_address = self.get_beneficiary_address(beneficiary_country)
+
+            instruction_payment_type = self.get_instruction_payment_type()
 
             self.payment_execution_date.append(payment_execution_date)
             self.payment_modification_date_and_time.append(payment_modification_date_and_time)
@@ -232,5 +373,12 @@ class Customer:
 
         df = pd.DataFrame(list(self.features.values())).transpose()
         df.columns = list(self.features.keys())
+
+        df['Payment Modification Date and Time'] = df['Payment Modification Date and Time'].dt.strftime('%m/%d/%Y, %H:%M %p')
+        df['Payment Creation Date and Time'] = df['Payment Creation Date and Time'].dt.strftime('%m/%d/%Y, %H:%M %p')
+        df['Payment Authorisation Date and Time'] = df['Payment Authorisation Date and Time'].dt.strftime('%m/%d/%Y, %H:%M %p')
+        df['User last successful login date/time'] = df['User last successful login date/time'].dt.strftime('%m/%d/%Y, %H:%M %p')
+
+        df['Payment Execution Date'] = df['Payment Execution Date'].dt.strftime('%Y-%m-%d')
 
         return df
