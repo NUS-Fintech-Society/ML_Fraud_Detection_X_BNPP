@@ -9,13 +9,13 @@ if __name__ == "__main__":
     num_of_customers = 500
 
     for _ in range(num_of_customers):
-        behaviour = Behaviour()
+        behaviour_id = random.choices([0, 1, 2, 3, 4], weights=(90, 2.5, 2.5, 2.5, 2.5))[0]
+        behaviour = Behaviour(behaviour_id)
 
         customer = Customer(behaviour)
 
-        num_of_transactions = random.randint(1, 50)
-        df_customer = customer.simulate_transactions(num_of_transactions=num_of_transactions)
+        df_customer = customer.simulate_transactions()
         df = df.append(df_customer)
 
-    df = df.sort_values('Payment Authorisation Date and Time')
+    # df = df.sort_values('Payment Authorisation Date and Time')
     df.to_csv('Dataset_creation/data/df_simulated.csv', index=False)
