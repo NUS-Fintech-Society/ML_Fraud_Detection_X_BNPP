@@ -17,5 +17,4 @@ if __name__ == "__main__":
         df_customer = customer.simulate_transactions()
         df = df.append(df_customer)
 
-    # df = df.sort_values('Payment Authorisation Date and Time')
     df.to_csv('Dataset_creation/data/df_simulated.csv', index=False)

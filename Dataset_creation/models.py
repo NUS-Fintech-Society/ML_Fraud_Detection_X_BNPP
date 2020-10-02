@@ -60,10 +60,14 @@ class Customer:
 
         :param behaviour: Specifies a set of "rules" that each Customer should follow
         """
+        # instantiating the faker object to be used per customer
         self.faker = Faker()
+
         self.behaviour = behaviour
 
         self.behaviour_id = []
+
+        # ordering of columns can be re-shuffled here
         self.payment_execution_date = []
         self.payment_modification_date_and_time = []
         self.payment_creation_date_and_time = []
@@ -81,10 +85,13 @@ class Customer:
         self.payment_amount = []
         self.payment_currency = []
         self.remittance_advice = []
+        self.intermediary_bank_code = []
         self.connexis_user_id_maker = []
         self.connexis_user_id_authoriser = []
-        self.user_country_geo_location = []
-        self.user_last_successful_login_date_time = []
+        self.maker_country_geo_location = []
+        self.maker_last_successful_login_date_time = []
+        self.authoriser_country_geo_location = []
+        self.authoriser_last_successful_login_date_time = []
 
         self.features = {
             "Behaviour ID": self.behaviour_id,
@@ -105,10 +112,13 @@ class Customer:
             "Payment Amount": self.payment_amount,
             "Payment Currency": self.payment_currency,
             "Remittance Advice": self.remittance_advice,
+            "Intermediary Bank Code": self.intermediary_bank_code,
             "Connexis User ID (Maker)": self.connexis_user_id_maker,
             "Connexis User ID (Authoriser)": self.connexis_user_id_authoriser,
-            "User Country Geo-Location": self.user_country_geo_location,
-            "User last successful login date/time": self.user_last_successful_login_date_time
+            "Maker Country Geo-Location": self.maker_country_geo_location,
+            "Maker last successful login date/time": self.maker_last_successful_login_date_time,
+            "Authoriser Country Geo-Location": self.authoriser_country_geo_location,
+            "Authoriser last successful login date/time": self.authoriser_last_successful_login_date_time
         }
 
     def get_behaviour_id(self) -> int:
@@ -302,21 +312,36 @@ class Customer:
         """
         return self.faker.text(max_nb_chars=4 * 35)
 
+    def get_intermediary_bank_code(self) -> str:
+        """
+        Example (DataFrame): HBUKGB4BXXX
+
+        Optional. Client can specify an intermediary bank.
+
+        :return: string
+        """
+        return random.choices([self.faker.swift11(primary=True), ""], weights=(20, 80))[0]
+
     def get_connexis_user_id_maker(self) -> str:
         """
         Example (DataFrame): ASDASDA
+
         :return: string
         """
         return self.faker.user_name().upper()
 
-    def get_connexis_user_id_authoriser(self) -> str:
+    def get_connexis_user_id_authoriser(self, connexis_user_id_maker) -> str:
         """
         Example (DataFrame): ASDASDA
+
+        Can be the same as maker.
+
+        :param connexis_user_id_maker: Connexis User ID Maker
         :return: string
         """
-        return self.faker.user_name().upper()
+        return connexis_user_id_maker
 
-    def get_user_country_geo_location(self) -> str:
+    def get_maker_country_geo_location(self) -> str:
         """
         Example (DataFrame): SG
 
@@ -326,7 +351,36 @@ class Customer:
 
         return random.choice(countries)
 
-    def get_user_last_successful_login_date_time(self, payment_authorisation_date_and_time: dt) -> str:
+    def get_maker_last_successful_login_date_time(self, payment_creation_date_and_time: dt) -> str:
+        """
+        Example (DataFrame): 11/1/16 1:47 AM
+
+        Random date and time anytime from 15 minutes before payment_creation_date_and_time
+
+        :param payment_creation_date_and_time: Payment Creation Date and Time
+        :return: Datetime object
+        """
+        min_delta = random.randint(1, 15)
+        sec_delta = random.randint(1, 59)
+        month_delta = 0
+
+        if self.behaviour.login_transaction_time_gap:
+            # 1 to 6 month earlier
+            month_delta = random.randint(1, 6)
+
+        return payment_creation_date_and_time - dt.timedelta(weeks=month_delta * 4, minutes=min_delta, seconds=sec_delta)
+
+    def get_authoriser_country_geo_location(self, maker_country_geo_location) -> str:
+        """
+        Example (DataFrame): SG
+
+        :param maker_country_geo_location: Maker Country Geo Location
+        :return: string
+        """
+
+        return maker_country_geo_location
+
+    def get_authoriser_last_successful_login_date_time(self, payment_authorisation_date_and_time: dt) -> str:
         """
         Example (DataFrame): 11/1/16 1:47 AM
 
@@ -352,16 +406,15 @@ class Customer:
 
         behaviour_id = self.get_behaviour_id()
         connexis_user_id_maker = self.get_connexis_user_id_maker()
-        connexis_user_id_authoriser = self.get_connexis_user_id_authoriser()
+        connexis_user_id_authoriser = self.get_connexis_user_id_authoriser(connexis_user_id_maker)
         client_entity_name = self.get_client_entity_name()
 
         for _ in range(self.behaviour.num_of_transactions):
-            user_country_geo_location = self.get_user_country_geo_location()
+            maker_country_geo_location = self.get_maker_country_geo_location()
             payment_authorisation_date_and_time = self.get_payment_authorisation_date_and_time()
-            user_last_successful_login_date_time = self.get_user_last_successful_login_date_time(payment_authorisation_date_and_time)
             payment_creation_date_and_time = self.get_payment_creation_date_and_time(payment_authorisation_date_and_time)
-            payment_modification_date_and_time = self.get_payment_modification_date_and_time(payment_creation_date_and_time,
-                                                                                             payment_authorisation_date_and_time)
+            maker_last_successful_login_date_time = self.get_maker_last_successful_login_date_time(payment_creation_date_and_time)
+            payment_modification_date_and_time = self.get_payment_modification_date_and_time(payment_creation_date_and_time, payment_authorisation_date_and_time)
             payment_execution_date = self.get_payment_execution_date(payment_authorisation_date_and_time)
             payment_currency = self.get_payment_currency()
             payment_amount = self.get_payment_amount()
@@ -370,12 +423,16 @@ class Customer:
             ordering_bank_code = self.get_ordering_bank_code()
             ordering_account_number = self.get_ordering_account_number()
             remittance_advice = self.get_remittance_advice()
+            intermediary_bank_code = self.get_intermediary_bank_code()
             beneficiary_bank_code = self.get_beneficiary_bank_code()
             beneficiary_country = self.get_beneficiary_country(beneficiary_bank_code)
             beneficiary_account_number = self.get_beneficiary_account_number(beneficiary_country)
             beneficiary_name = self.get_beneficiary_name()
             beneficiary_address = self.get_beneficiary_address()
             instruction_payment_type = self.get_instruction_payment_type()
+
+            authoriser_country_geo_location = self.get_authoriser_country_geo_location(maker_country_geo_location)
+            authoriser_last_successful_login_date_time = self.get_authoriser_last_successful_login_date_time(payment_authorisation_date_and_time)
 
             self.behaviour_id.append(behaviour_id)
             self.payment_execution_date.append(payment_execution_date)
@@ -395,10 +452,13 @@ class Customer:
             self.payment_amount.append(payment_amount)
             self.payment_currency.append(payment_currency)
             self.remittance_advice.append(remittance_advice)
+            self.intermediary_bank_code.append(intermediary_bank_code)
             self.connexis_user_id_maker.append(connexis_user_id_maker)
             self.connexis_user_id_authoriser.append(connexis_user_id_authoriser)
-            self.user_country_geo_location.append(user_country_geo_location)
-            self.user_last_successful_login_date_time.append(user_last_successful_login_date_time)
+            self.maker_country_geo_location.append(maker_country_geo_location)
+            self.maker_last_successful_login_date_time.append(maker_last_successful_login_date_time)
+            self.authoriser_country_geo_location.append(authoriser_country_geo_location)
+            self.authoriser_last_successful_login_date_time.append(authoriser_last_successful_login_date_time)
 
         df = pd.DataFrame(list(self.features.values())).transpose()
         df.columns = list(self.features.keys())
@@ -406,7 +466,8 @@ class Customer:
         df['Payment Modification Date and Time'] = df['Payment Modification Date and Time'].dt.strftime('%m/%d/%Y, %H:%M %p')
         df['Payment Creation Date and Time'] = df['Payment Creation Date and Time'].dt.strftime('%m/%d/%Y, %H:%M %p')
         df['Payment Authorisation Date and Time'] = df['Payment Authorisation Date and Time'].dt.strftime('%m/%d/%Y, %H:%M %p')
-        df['User last successful login date/time'] = df['User last successful login date/time'].dt.strftime('%m/%d/%Y, %H:%M %p')
+        df['Maker last successful login date/time'] = df['Maker last successful login date/time'].dt.strftime('%m/%d/%Y, %H:%M %p')
+        df['Authoriser last successful login date/time'] = df['Authoriser last successful login date/time'].dt.strftime('%m/%d/%Y, %H:%M %p')
 
         df['Payment Execution Date'] = df['Payment Execution Date'].dt.strftime('%Y-%m-%d')
 
