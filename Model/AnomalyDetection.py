@@ -39,59 +39,20 @@ class AnomalyDetection:
         """
         return self.feature_columns
 
-    def DBSCAN(self, data: np.ndarray, eps: float) -> np.ndarray:
+    @staticmethod
+    def format_reduced_points(reduced_pts: List[dict], percent: float) -> pd.DataFrame:
         """
-        Density-Based Spatial Clustering of Applications with Noise algorithm from sklearn.
+        Formats the reduced points.
 
-        :param data: Numpy array representing the training data.
-        :param eps: Float representing the eps.
-        :return: Numpy array representing the training data.
-        """
-        start = time.time()
-        print("Starting DBSCAN...")
-        clustering_optics = OPTICS(eps=eps, cluster_method='dbscan').fit(data)
-        cluster_labels = clustering_optics.labels_
-        labels = cluster_labels.astype(int)
-        end = time.time()
-        print("DBSCAN completed!")
-        print(f"Time taken for DBSCAN: {end - start} seconds\n")
-
-        return labels
-
-    # feature_data is the from original data, input type numpy array
-    # labels is the labels found from DBSCAN
-    # eps is the max distance from each pt to sample
-    # percent is selection of top proportion with highest distance calculated
-    def REDBSCAN(self, feature_data: np.ndarray, labels: np.ndarray, eps: float, percent: float, drop_rate: float) -> pd.DataFrame:
-        """
-        Radar Elliptical Density-Based Spatial Clustering of Applications with Noise algorithm from sklearn.
-
-        :param feature_data: Numpy array representing the original training data.
-        :param labels: Numpy array representing the labels found from DBSCAN.
-        :param eps: Float representing the max distance from each point to sample.
-        :param percent: Float representing the selection of top proportion with highest distance calculated.
-        :param drop_rate: Float representing the rate of points to drop while reducing data.
+        :param reduced_pts:
+        :param percent:
         :return: DataFrame representing the reduced points.
         """
-        print("Starting REDBSCAN...")
-        start = time.time()
-        boundary_pts = []
-        dropped = []
-        for index, x in enumerate(feature_data):
-            if index in dropped:
-                continue
-            dist, dropped_pts = self.find_total_distance(x, feature_data, labels, labels[index], eps, drop_rate)
-            boundary_pts.append({'pt': x, 'dist': dist})
-            for i in dropped_pts:
-                if i not in dropped:
-                    dropped.append(i)
+        length_pts = len(reduced_pts)
+        selected_pts = reduced_pts[:int(length_pts * percent)]
 
-        boundary_pts.sort(key=lambda x: x['dist'], reverse=True)
-        df_reduced_pts = self.format_reduced_points(boundary_pts, percent)
-
-        end = time.time()
-        print("REDBSCAN completed!")
-        print(f"Time taken for REDBSCAN: {end - start} s\n")
+        points = [d['pt'] for d in selected_pts]
+        df_reduced_pts = pd.DataFrame(points)
 
         return df_reduced_pts
 
@@ -127,20 +88,55 @@ class AnomalyDetection:
 
         return distance / no_pts, dropped_pts
 
-    @staticmethod
-    def format_reduced_points(reduced_pts: List[dict], percent: float) -> pd.DataFrame:
+    def DBSCAN(self, data: np.ndarray, eps: float) -> np.ndarray:
         """
-        Formats the reduced points.
+        Density-Based Spatial Clustering of Applications with Noise algorithm from sklearn.
 
-        :param reduced_pts:
-        :param percent:
+        :param data: Numpy array representing the training data.
+        :param eps: Float representing the eps.
+        :return: Numpy array representing the training data.
+        """
+        start = time.time()
+        print("Starting DBSCAN...")
+        clustering_optics = OPTICS(eps=eps, cluster_method='dbscan').fit(data)
+        cluster_labels = clustering_optics.labels_
+        labels = cluster_labels.astype(int)
+        end = time.time()
+        print("DBSCAN completed!")
+        print(f"Time taken for DBSCAN: {end - start} seconds\n")
+
+        return labels
+
+    def REDBSCAN(self, feature_data: np.ndarray, labels: np.ndarray, eps: float, percent: float, drop_rate: float) -> pd.DataFrame:
+        """
+        Radar Elliptical Density-Based Spatial Clustering of Applications with Noise algorithm from sklearn.
+
+        :param feature_data: Numpy array representing the original training data.
+        :param labels: Numpy array representing the labels found from DBSCAN.
+        :param eps: Float representing the max distance from each point to sample.
+        :param percent: Float representing the selection of top proportion with highest distance calculated.
+        :param drop_rate: Float representing the rate of points to drop while reducing data.
         :return: DataFrame representing the reduced points.
         """
-        length_pts = len(reduced_pts)
-        selected_pts = reduced_pts[:int(length_pts * percent)]
+        print("Starting REDBSCAN...")
+        start = time.time()
+        boundary_pts = []
+        dropped = []
+        for index, x in enumerate(feature_data):
+            if index in dropped:
+                continue
+            dist, dropped_pts = self.find_total_distance(x, feature_data, labels, labels[index], eps, drop_rate)
+            boundary_pts.append({'pt': x, 'dist': dist})
+            for i in dropped_pts:
+                if i not in dropped:
+                    dropped.append(i)
 
-        points = [d['pt'] for d in selected_pts]
-        df_reduced_pts = pd.DataFrame(points)
+        boundary_pts.sort(key=lambda x: x['dist'], reverse=True)
+        df_reduced_pts = self.format_reduced_points(boundary_pts, percent)
+
+        end = time.time()
+        print("REDBSCAN completed!")
+        print(f"Time taken for REDBSCAN: {end - start} s\n")
 
         return df_reduced_pts
 
