@@ -9,7 +9,7 @@ from sklearn.svm import OneClassSVM
 
 class AnomalyDetection:
     """
-    AnomalyDetection object.
+    AnomalyDetection object. (Ignore for the time being)
     """
 
     def __init__(self, eps: float = 0.02, percent: float = 0.20, gamma: float = 0.01, drop_rate: float = 0.2):

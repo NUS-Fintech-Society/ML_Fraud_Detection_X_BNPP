@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn import preprocessing
 from sklearn.metrics import classification_report
 
-from Model.AnomalyDetection import AnomalyDetection
+from Model.OneClassSVM import AnomalyDetection
 
 # Pre-processing data into fraud and non-fraud
 df = pd.read_csv('Model/creditcard.csv')
