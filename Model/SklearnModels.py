@@ -3,20 +3,27 @@ import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.ensemble import IsolationForest
+from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-from sklearn.neighbors import LocalOutlierFactor
+from sklearn.model_selection import train_test_split
+
+# from sklearn.covariance import EllipticEnvelope
+# from sklearn.neighbors import LocalOutlierFactor
+# from sklearn.svm import OneClassSVM
 
 """
 https://towardsdatascience.com/unsupervised-learning-for-anomaly-detection-44c55a96b8c1
 https://www.kaggle.com/vardaanbajaj/unsupervised-anomaly-detection-for-fraud-detection
 """
 
-# reading
-df = pd.read_csv('anomaly_detection/creditcard.csv')
+# Reading
+df = pd.read_csv('Model/creditcard.csv')
 print(df.shape)
 
-# sampling
-data = df.sample(frac=0.2, random_state=1)
+# Sampling
+# data = df.sample(frac=0.2, random_state=1)
+data = df
 print(data.shape)
 
 # class distribution
@@ -76,16 +83,20 @@ data.drop(['Time', 'V1', 'V24'], axis=1, inplace=True)
 columns = data.columns.tolist()
 target = 'Class'
 columns = [c for c in columns if c != 'Class']
-X_train = data.iloc[:45000, :-1]
-y_train = data.iloc[:45000, -1]
-X_test = data.iloc[45000:, :-1]
-y_test = data.iloc[45000:, -1]
+
+X, y = np.array(data.drop('Class', axis=1)), np.array(data.Class)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=40, stratify=y)
+# X_train = data.iloc[:45000, :-1]
+# y_train = data.iloc[:45000, -1]
+# X_test = data.iloc[45000:, :-1]
+# y_test = data.iloc[45000:, -1]
+
 print(X_train.shape, X_test.shape)
 print(y_train.shape, y_test.shape)
 
 # Model
-model = LocalOutlierFactor(contamination=anomaly_fraction)
-# model = IsolationForest(n_estimators=10, warm_start=True)
+# model = LocalOutlierFactor(contamination=anomaly_fraction)
+model = IsolationForest(n_estimators=10, warm_start=True)
 # model = EllipticEnvelope(contamination=anomaly_fraction)
 # model = OneClassSVM(nu=anomaly_fraction)
 
@@ -141,3 +152,7 @@ print(f"Total non-fraud transactions detected in test: {cm_test[0][0]} / {cm_tes
 print(f"Probability to detect a fraud transaction in test: {cm_test[1][1] / (cm_test[1][1] + cm_test[1][0])}")
 print(f"Probability to detect a non-fraud transaction in test: {cm_test[0][0] / (cm_test[0][1] + cm_test[0][0])}")
 print(f"Accuracy of model on the test: {100 * (cm_test[0][0] + cm_test[1][1]) / (sum(cm_test[0]) + sum(cm_test[1]))}")
+
+# Classification Report
+print(classification_report(y_train, y_train_pred))
+print(classification_report(y_test, y_test_pred))
