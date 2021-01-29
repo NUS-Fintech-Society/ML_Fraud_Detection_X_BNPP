@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 
 # from sklearn.covariance import EllipticEnvelope
@@ -154,5 +155,6 @@ print(f"Probability to detect a non-fraud transaction in test: {cm_test[0][0] / 
 print(f"Accuracy of model on the test: {100 * (cm_test[0][0] + cm_test[1][1]) / (sum(cm_test[0]) + sum(cm_test[1]))}")
 
 # Classification Report
-print(classification_report(y_train, y_train_pred))
+# print(classification_report(y_train, y_train_pred))
 print(classification_report(y_test, y_test_pred))
+print(f"AUROC score: {roc_auc_score(y_test, y_test_pred)}")
