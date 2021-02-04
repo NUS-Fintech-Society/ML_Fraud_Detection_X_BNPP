@@ -320,11 +320,11 @@ class Oracle:
 		Returns the label predicated by the oracle network for example
 		'''
 		#for direct prediction output e.g. output  = np.array([-1]) for anomaly
-		onehot =self.network.predict(np.array([example]))
-		return onehot[0]
+		# onehot =self.network.predict(np.array([example]))
+		# return onehot[0]
 		#for one hot prediction output e.g. output  = np.array([1,0]) for anomaly
-		#onehot =self.network.predict(np.array([example])).reshape(self.num_classes)
-		#return np.argmax(onehot)
+		onehot =self.network.predict(np.array([example])).reshape(self.num_classes)
+		return np.argmax(onehot)
 
 	def generate_constrained_examples_with_labels(self,constraints,num_examples):
 		'''
